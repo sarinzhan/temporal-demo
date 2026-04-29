@@ -59,6 +59,18 @@ services:
       - temporal-network
     ports:
       - 8080:8080
+  app-postgresql:
+    container_name: app-postgresql
+    image: postgres:16
+    environment:
+      POSTGRES_DB: workflow_demo
+      POSTGRES_USER: workflow
+      POSTGRES_PASSWORD: workflow
+    ports:
+      - "5433:5432"
+    volumes:
+      - app_pg_data:/var/lib/postgresql/data
+
 networks:
   temporal-network:
     driver: bridge
@@ -66,3 +78,4 @@ networks:
 
 volumes:
   pg_data:
+  app_pg_data:
