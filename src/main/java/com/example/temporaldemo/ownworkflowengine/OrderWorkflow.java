@@ -23,7 +23,7 @@ public class OrderWorkflow implements Workflow {
     public void run(WorkflowContext ctx) {
         ReserverResponse reserved = ctx.activity(
                 "RESERVE", ReserverResponse.class,
-                RetryPolicy.fixed(10, 6_000),
+                RetryPolicy.fixed(10, 10_000),
                 () -> {
                     return externalClient.reserve(new ReserveRequest());
                 }
@@ -31,13 +31,13 @@ public class OrderWorkflow implements Workflow {
 
         ctx.activity(
                 "CHARGE",
-                RetryPolicy.fixed(10, 5_000),
+                RetryPolicy.fixed(10, 10_000),
                 () -> externalClient.charge(reserved)
         );
 
         ctx.activity(
                 "DELIVER",
-                RetryPolicy.fixed(10, 6_000),
+                RetryPolicy.fixed(10, 10_000),
                 externalClient::deliver
         );
     }

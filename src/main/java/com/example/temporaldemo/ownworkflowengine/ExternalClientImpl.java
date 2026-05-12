@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Component
 @Slf4j
@@ -37,8 +38,20 @@ public class ExternalClientImpl implements ExternalClient {
     }
 
     private void failRandomly(String method) {
+        randomSleep(5000, 20000);
         if (random.nextDouble() < FAILURE_RATE) {
             throw new ExternalClientUnavailableException(method + " service unavailable");
+        }
+    }
+
+    public static void randomSleep(long minMillis, long maxMillis) {
+        try {
+            long sleepTime = ThreadLocalRandom.current()
+                    .nextLong(minMillis, maxMillis + 1);
+
+            Thread.sleep(sleepTime);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 }
