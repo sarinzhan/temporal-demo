@@ -23,8 +23,8 @@ public class WorkflowController {
     }
 
     @PostMapping("/order")
-    public ResponseEntity<Map<String, UUID>> startOrder(@RequestBody ReserveRequest request) {
-        UUID workflowId = workflowClient.startWorkflow("ORDER", request);
+    public ResponseEntity<Map<String, Long>> startOrder(@RequestBody ReserveRequest request) {
+        Long workflowId = workflowClient.startWorkflow("ORDER", request);
         log.info("Started ORDER workflow {}", workflowId);
         return ResponseEntity.ok(Map.of("workflowId", workflowId));
     }

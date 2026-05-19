@@ -20,12 +20,12 @@ public class WorkerStarter implements CommandLineRunner {
     @Override
     public void run(String... args) {
 
-        Worker worker = factory.newWorker("ORDER_TASK_QUEUE");
+//        Worker worker = factory.newWorker("ORDER_TASK_QUEUE");
+//
+//        worker.registerWorkflowImplementationTypes(OrderWorkflowImpl.class);
+//        worker.registerActivitiesImplementations(new OrderActivityImpl());
 
-        worker.registerWorkflowImplementationTypes(OrderWorkflowImpl.class);
-        worker.registerActivitiesImplementations(new OrderActivityImpl());
-
-        factory.start();
+//        factory.start();
 
         System.out.println("Temporal Worker Started...");
     }

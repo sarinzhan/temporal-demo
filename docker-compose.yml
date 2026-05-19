@@ -5,6 +5,7 @@ services:
     environment:
       POSTGRES_PASSWORD: temporal
       POSTGRES_USER: temporal
+      POSTGRES_DB: workflow_demo
     image: postgres:${POSTGRESQL_VERSION}
     networks:
       - temporal-network

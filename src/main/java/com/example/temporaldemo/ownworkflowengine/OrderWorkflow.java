@@ -12,12 +12,20 @@ public class OrderWorkflow {
 
     private final ExternalClient externalClient;
 
+    private static final ActivityOptions ACTIVITY_OPTIONS = ActivityOptions.newBuilder()
+            .setStartToCloseTimeout(Duration.ofMinutes(1))
+            .setRetryPolicy(RetryPolicy.newBuilder()
+                    .setMaxAttempts(15)
+                    .setInitialInterval(Duration.ofSeconds(1))
+                    .setMaxInterval(Duration.ofSeconds(30))
+                    .setBackoffCoefficient(2.0)
+                    .addNoRetry(IllegalArgumentException.class)
+                    .build())
+            .build();
+
     private final ExternalClient externalClientStub = Workflow.newActivityStub(
             ExternalClient.class,
-            ActivityOptions.newBuilder()
-                    .setStartToCloseTimeout(Duration.ofMinutes(1))
-                    .setRetryPolicy(RetryPolicy.fixed(10, 10_000))
-                    .build()
+            ACTIVITY_OPTIONS
     );
 
     public OrderWorkflow(ExternalClient externalClient) {
@@ -27,15 +35,16 @@ public class OrderWorkflow {
     public void run(ReserveRequest request) {
         // Способ 1: функциональный вызов с input + Function
         ReserverResponse reserved = Workflow.activity(
-                "RESERVE", request,
-                RetryPolicy.fixed(10, 10_000),
+                "RESERVE",
+                ACTIVITY_OPTIONS,
+                request,
                 req -> externalClient.reserve(req)
         );
 
         // Способ 2: функциональный вызов как Runnable (side-effect)
         Workflow.activity(
                 "CHARGE",
-                RetryPolicy.fixed(10, 10_000),
+                ACTIVITY_OPTIONS,
                 () -> externalClient.charge(reserved)
         );
 
