@@ -1,44 +1,45 @@
 package com.example.temporaldemo.ownworkflowengine;
 
-import com.beeline.temporalmini.RetryPolicy;
-import com.beeline.temporalmini.Workflow;
-import com.beeline.temporalmini.WorkflowContext;
-import org.springframework.stereotype.Component;
+import com.beeline.workflow.core.annotation.WorkflowComponent;
+import com.beeline.workflow.core.api.Workflow;
+import com.beeline.workflow.core.config.ActivityOptions;
+import com.beeline.workflow.core.config.RetryPolicy;
 
-@Component
-public class OrderWorkflow implements Workflow {
+import java.time.Duration;
+
+@WorkflowComponent("ORDER")
+public class OrderWorkflow {
 
     private final ExternalClient externalClient;
+
+    private final ExternalClient externalClientStub = Workflow.newActivityStub(
+            ExternalClient.class,
+            ActivityOptions.newBuilder()
+                    .setStartToCloseTimeout(Duration.ofMinutes(1))
+                    .setRetryPolicy(RetryPolicy.fixed(10, 10_000))
+                    .build()
+    );
 
     public OrderWorkflow(ExternalClient externalClient) {
         this.externalClient = externalClient;
     }
 
-    @Override
-    public String type() {
-        return "ORDER";
-    }
-
-    @Override
-    public void run(WorkflowContext ctx) {
-        ReserverResponse reserved = ctx.activity(
-                "RESERVE", ReserverResponse.class,
+    public void run(ReserveRequest request) {
+        // Способ 1: функциональный вызов с input + Function
+        ReserverResponse reserved = Workflow.activity(
+                "RESERVE", request,
                 RetryPolicy.fixed(10, 10_000),
-                () -> {
-                    return externalClient.reserve(new ReserveRequest());
-                }
+                req -> externalClient.reserve(req)
         );
 
-        ctx.activity(
+        // Способ 2: функциональный вызов как Runnable (side-effect)
+        Workflow.activity(
                 "CHARGE",
                 RetryPolicy.fixed(10, 10_000),
                 () -> externalClient.charge(reserved)
         );
 
-        ctx.activity(
-                "DELIVER",
-                RetryPolicy.fixed(10, 10_000),
-                externalClient::deliver
-        );
+        // Способ 3: через typed-interface stub (JDK Proxy)
+        externalClientStub.deliver();
     }
 }

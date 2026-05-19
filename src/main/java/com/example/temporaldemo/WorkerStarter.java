@@ -25,8 +25,8 @@ public class WorkerStarter implements CommandLineRunner {
         worker.registerWorkflowImplementationTypes(OrderWorkflowImpl.class);
         worker.registerActivitiesImplementations(new OrderActivityImpl());
 
-//        factory.start();
+        factory.start();
 
-//        System.out.println("Temporal Worker Started...");
+        System.out.println("Temporal Worker Started...");
     }
 }

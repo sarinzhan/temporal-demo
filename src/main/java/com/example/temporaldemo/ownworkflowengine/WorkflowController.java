@@ -1,34 +1,31 @@
 package com.example.temporaldemo.ownworkflowengine;
 
-import com.beeline.temporalmini.WorkflowEngine;
+import com.beeline.workflow.spring.api.WorkflowClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import tools.jackson.databind.ObjectMapper;
+
+import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/workflows")
 @Slf4j
 public class WorkflowController {
 
-    private final WorkflowEngine workflowEngine;
-    private final ObjectMapper objectMapper;
+    private final WorkflowClient workflowClient;
 
-    public WorkflowController(WorkflowEngine workflowEngine, ObjectMapper objectMapper) {
-        this.workflowEngine = workflowEngine;
-        this.objectMapper = objectMapper;
+    public WorkflowController(WorkflowClient workflowClient) {
+        this.workflowClient = workflowClient;
     }
 
     @PostMapping("/order")
-    public ResponseEntity<Long> startOrder(@RequestBody ReserveRequest request) {
-        try {
-            Long workflowId = workflowEngine.start("ORDER", objectMapper.writeValueAsString(request));
-            return ResponseEntity.ok(workflowId);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to start workflow", e);
-        }
+    public ResponseEntity<Map<String, UUID>> startOrder(@RequestBody ReserveRequest request) {
+        UUID workflowId = workflowClient.startWorkflow("ORDER", request);
+        log.info("Started ORDER workflow {}", workflowId);
+        return ResponseEntity.ok(Map.of("workflowId", workflowId));
     }
 }
